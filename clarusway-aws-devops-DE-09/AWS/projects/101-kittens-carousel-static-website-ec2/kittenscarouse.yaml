@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+ This CloudFormation Template was written for
+  running Kittens Carousel Static Website on EC2.
+  Kittens Carousel Static Website will be
+  deployed on Amazon Linux 2023
+  (latestamiid) EC2 Instance with
+  custom security group which allows http
+  connections on port 80 and ssh port 22 from
+  anywhere. Kittens Carousel Static Website
+  is downloaded from my Public Github repository,
+  then deployed on Apache Web Server.
+
+  
+Parameters:
+  AmiId:
+   Description: choose your ami id
+   Type: AWS::EC2::Image::ID
+   Default: ami-0b72821e2f351e396
+
+  keypair:
+   Description: choose your key pair
+   Type: AWS::EC2::KeyPair::KeyName
+   Default: bendar
+
+  InstanceType:
+   Description: choose your Instance type
+   Type: String
+   Default: t2.micro
+   AllowedValues:
+        - t2.micro
+        - t2.large
+  
+Resources:
+
+ webserversecuritygroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: sim-sec-grp-kittens
+      GroupDescription: enable ssh and http
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+  webserverkittens:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref keypair
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+     
+      SecurityGroupIds:
+        - !Ref webserversecuritygroup
+      UserData: 
+        Fn::Base64: |
+          #! /bin/bash
+          yum update -y
+          yum install httpd -y
+          FOLDER="https://github.com/SimretTesfu/Aws-projects/tree/main/clarusway-aws-devops-DE-09/AWS/projects/101-kittens-carousel-static-website-ec2/static-web/"
+          cd /var/www/html
+          wget $FOLDER/index.html
+          wget $FOLDER/cat0.jpg
+          wget $FOLDER/cat1.jpg
+          wget $FOLDER/cat2.jpg
+          wget $FOLDER/cat3.png
+          systemctl start httpd
+          systemctl enable httpd
+       
+      Tags:
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName}
+             
+Outputs:
+  websiteURL:
+    value: !Sub
+      - http://${PublicAddress}
+      - PublicAddress: !GetAtt WebServerKittens.PublicDnsName
