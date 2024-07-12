@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 Description: |
   This CloudFormation Template was written for
   running Kittens Carousel Static Website on EC2.
@@ -12,18 +12,18 @@ Description: |
   then deployed on Apache Web Server.
 Parameters:
   AmiId:
-   Description: choose your ami ad
-   Type: AWS::EC2::Image::Id
-   Default: ami-0b72821e2f351e396
+    Description: Choose your AMI ID
+    Type: AWS::EC2::Image::Id
+    Default: ami-0b72821e2f351e396
   KeyPair:
-   Description: choose your key pair
-   Type: AWS::EC2::KeyPair::KeyName
-   Default: bendar
+    Description: Choose your key pair
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: bendar
   InstanceType:
-   Description: choose your instance type
-   Type: String
-   Default: t2.micro
-   AllowedValues:
+    Description: Choose your instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
        - t2.micro
        - t2.large
 Resources:
@@ -33,14 +33,14 @@ Resources:
       GroupName: simret-sec-grp-kittens
       GroupDescription: Enable ssh and http
       SecurityGroupIngress:
-        -   CidrIp: 0.0.0.0/0
-            FromPort: 22
-            ToPort: 22
-            IpProtocol: tcp
-        -   CidrIp: 0.0.0.0/0
-            FromPort: 80
-            ToPort: 80
-            IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
   WebServerKittens:
     Type: AWS::EC2::Instance
     Properties:
@@ -48,10 +48,10 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyPair
       SecurityGroupIds:
-      - !Ref WebServerSecurityGroup
+        - !Ref WebServerSecurityGroup
       Tags:
-      - Key: Name
-        Value: !Sub Web Server of ${AWS::StackName}
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName}
       UserData:
         Fn::Base64: |
           #! /bin/bash
@@ -67,6 +67,8 @@ Resources:
           systemctl enable httpd
 Outputs:
   WebSiteURL:
+    Description: URL for the Kittens Carousel website
     Value: !Sub
-    - http://${PublicAddress}
-    - PublicAddress: !GetAtt WebServerKittens.PublicDnsName
+      - http://${PublicAddress}
+      - PublicAddress: !GetAtt WebServerKittens.PublicDnsName
+

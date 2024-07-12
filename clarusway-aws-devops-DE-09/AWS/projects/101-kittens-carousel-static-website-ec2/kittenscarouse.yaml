@@ -1,6 +1,6 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 Description: |
- This CloudFormation Template was written for
+  This CloudFormation Template was written for
   running Kittens Carousel Static Website on EC2.
   Kittens Carousel Static Website will be
   deployed on Amazon Linux 2023
@@ -10,34 +10,28 @@ Description: |
   anywhere. Kittens Carousel Static Website
   is downloaded from my Public Github repository,
   then deployed on Apache Web Server.
-
-  
 Parameters:
   AmiId:
-   Description: choose your ami id
-   Type: AWS::EC2::Image::ID
-   Default: ami-0b72821e2f351e396
-
-  keypair:
-   Description: choose your key pair
-   Type: AWS::EC2::KeyPair::KeyName
-   Default: bendar
-
+    Description: Choose your AMI ID
+    Type: AWS::EC2::Image::Id
+    Default: ami-0b72821e2f351e396
+  KeyPair:
+    Description: Choose your key pair
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: bendar
   InstanceType:
-   Description: choose your Instance type
-   Type: String
-   Default: t2.micro
-   AllowedValues:
-        - t2.micro
-        - t2.large
-  
+    Description: Choose your instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+       - t2.micro
+       - t2.large
 Resources:
-
- webserversecuritygroup:
+  WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: sim-sec-grp-kittens
-      GroupDescription: enable ssh and http
+      GroupName: simret-sec-grp-kittens-uni
+      GroupDescription: Enable ssh and http
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           FromPort: 22
@@ -47,36 +41,33 @@ Resources:
           FromPort: 80
           ToPort: 80
           IpProtocol: tcp
-  webserverkittens:
+  WebServerKittens:
     Type: AWS::EC2::Instance
     Properties:
-      KeyName: !Ref keypair
       ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
-     
+      KeyName: !Ref KeyPair
       SecurityGroupIds:
-        - !Ref webserversecuritygroup
-      UserData: 
+        - !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName}
+      UserData:
         Fn::Base64: |
           #! /bin/bash
           yum update -y
           yum install httpd -y
-          FOLDER="https://github.com/SimretTesfu/Aws-projects/tree/main/clarusway-aws-devops-DE-09/AWS/projects/101-kittens-carousel-static-website-ec2/static-web/"
+          FOLDER="https://raw.githubusercontent.com/SimretTesfu/Aws-projects/main/clarusway-aws-devops-DE-09/AWS/projects/101-kittens-carousel-static-website-ec2/static-web/"
           cd /var/www/html
           wget $FOLDER/index.html
           wget $FOLDER/cat0.jpg
           wget $FOLDER/cat1.jpg
           wget $FOLDER/cat2.jpg
-          wget $FOLDER/cat3.png
           systemctl start httpd
           systemctl enable httpd
-       
-      Tags:
-        - Key: Name
-          Value: !Sub Web Server of ${AWS::StackName}
-             
 Outputs:
-  websiteURL:
-    value: !Sub
+  WebSiteURL:
+    Description: URL for the Kittens Carousel website
+    Value: !Sub
       - http://${PublicAddress}
       - PublicAddress: !GetAtt WebServerKittens.PublicDnsName
