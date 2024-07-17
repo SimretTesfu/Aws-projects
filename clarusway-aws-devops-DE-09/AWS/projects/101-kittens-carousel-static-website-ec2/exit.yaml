@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  This CloudFormation Template was written for 
+  running Kittens Carousel Static Website on EC2. 
+  Kittens Carousel Static Website will be 
+  deployed on Amazon Linux 2023
+  (latestamiid) EC2 Instance with 
+  custom security group which allows http 
+  connections on port 80 and ssh port 22 from 
+  anywhere. Kittens Carousel Static Website 
+  is downloaded from my Public Github repository,
+  then deployed on Apache Web Server.
+  
+Parameters:
+  keypair:
+    Description: key name
+    Type: String
+    Default: bendar
+  myInstance:
+    Description: select instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+        - t2.nano
+        - t2.micro
+  AmiId:
+      Description: Choose your AMI ID
+      Type: AWS::EC2::Image::Id
+      Default: ami-0b72821e2f351e396
+Resources:
+  secGroupName:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allowport 80 and 22 #required
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  myEC2Instance:
+      Type: AWS::EC2::Instance
+      Properties:
+        KeyName: !Ref keypair
+        ImageId: !Ref AmiId
+        InstanceType: !Ref myInstance
+      
+        SecurityGroupIds:
+          - !Ref secGroupName
+        UserData: !Base64 |
+            #! /bin/bash
+            yum update -y
+            yum install httpd -y
+            FOLDER="https://raw.githubusercontent.com/SimretTesfu/Aws-projects/main/clarusway-aws-devops-DE-09/AWS/projects/101-kittens-carousel-static-website-ec2/static-web/"
+            cd /var/www/html
+            wget $FOLDER/index.html
+            wget $FOLDER/cat0.jpg
+            wget $FOLDER/cat1.jpg
+            wget $FOLDER/cat2.jpg
+            systemctl start httpd
+            systemctl enable httpd
+        Tags: 
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName}
+
+Outputs:
+  website:
+    Description: url of ma web
+    Value: !Sub
+      - http://${PublicIp}
+      - PublicIp: !GetAtt myEC2Instance.PublicIp
+  
