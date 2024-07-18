@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description:
+ This CloudFormation Template was written for 
+  running Kittens Carousel Static Website on EC2. 
+  Kittens Carousel Static Website will be 
+  deployed on Amazon Linux 2023
+  (latestamiid) EC2 Instance with 
+  custom security group which allows http 
+  connections on port 80 and ssh port 22 from 
+  anywhere. Kittens Carousel Static Website 
+  is downloaded from my Public Github repository,
+  then deployed on Apache Web Server.
+  
+Parameters:
+    vpcpar:
+        Description: vpc
+        Type: AWS::EC2::VPC::Id
+    mysubnetName:
+      Description: select subnet
+      Type: List<AWS::EC2::Subnet::Id>
+    myinstancetype:
+        Description: select instance type
+        Type: String
+        Default: t2.micro
+        AllowedValues:
+          - t2.micro
+          - t2.small
+          - t2.nano
+    keypair:
+        Description: select your key name
+        Type: AWS::EC2::KeyPair::KeyName
+        Default: bendar
+    amiId:
+        Description: select ami
+        Type: AWS::EC2::Image::Id
+Mappings:
+  regionImage:
+    us-east-1:
+      AMI: ami-0b72821e2f351e396
+    us-west-1:
+      AMI: ami-0bdb828fd58c52235
+      
+    eu-west-1:
+      AMI: ami-047bb4163c506cd98
+     
+    ap-northeast-1:
+      AMI: ami-06cd52961ce9f0d85
+      
+    ap-southeast-1:
+      AMI: ami-08569b978cc4dfa10
+  
+     
+Resources:
+    mysecGroupName:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: allow ssh and http
+          VpcId: !Ref vpcpar
+          SecurityGroupIngress:
+            - IpProtocol: tcp
+              FromPort: 22
+              ToPort: 22
+              CidrIp: 0.0.0.0/0
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              CidrIp: 0.0.0.0/0
+    mytarget:
+      Type: AWS::ElasticLoadBalancingV2::TargetGroup
+      Properties:
+        HealthCheckIntervalSeconds: 10
+        HealthCheckTimeoutSeconds: 5
+        HealthyThresholdCount: 5
+        Port: 80
+        Protocol: HTTP
+        UnhealthyThresholdCount: 2
+        VpcId: !Ref vpcpar
+    myEC2Instance:
+        Type: AWS::EC2::Instance
+        Properties:
+          KeyName: !Ref keypair
+          ImageId: !FindInMap 
+            - regionImage
+            - !Ref 'AWS::Region'
+            - AMI
+          InstanceType: !Ref myinstancetype
+          SecurityGroupIds:
+            - !GetAtt mysecGroupName.GroupId
+          subnets: !Sub mysubnetName
+          UserData: !Base64 |
+            #!/bin/bash -ex
+            yum update -y
+            yum install httpd -y
+            FOLDER="https://raw.githubusercontent.com/SimretTesfu/Aws-projects/main/clarusway-aws-devops-DE-09/AWS/projects/101-kittens-carousel-static-website-ec2/static-web/"
+            cd /var/www/html
+            wget $FOLDER/index.html
+            wget $FOLDER/cat0.jpg
+            wget $FOLDER/cat1.jpg
+            wget $FOLDER/cat2.jpg
+            systemctl start httpd
+            systemctl enable httpd
+  
+Outputs:
+ websiteurl: 
+   Value: !Sub 
+    - http://${Address}
+    - Address: !GetAtt myEC2Instance.PublicIp

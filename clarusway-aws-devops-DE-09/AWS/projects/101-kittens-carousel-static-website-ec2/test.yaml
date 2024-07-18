@@ -69,6 +69,6 @@ Resources:
 Outputs:
  websiteurl: 
    Value: !Sub 
-    - http://${PublicAddress}
-    - PublicAddress: !GetAtt myEC2Instance.PublicIp
+    - http://${Address}
+    - Address: !GetAtt myEC2Instance.PublicIp
 
