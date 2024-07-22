@@ -9,7 +9,8 @@ Parameters:
   amiid:
     Description: select image
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+  myec2ins:
     Description: select ec2 type
     Type: String
     Default: t2.micro
