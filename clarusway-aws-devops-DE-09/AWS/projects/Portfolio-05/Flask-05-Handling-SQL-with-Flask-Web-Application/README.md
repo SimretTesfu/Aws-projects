@@ -63,6 +63,19 @@ At the end of the this hands-on training, students will be able to;
 
 - Create an RDS database and use it as database of application
 
+
+- Create an RDS database with following configurations:
+- DB Instance Identifier    : << your surname-flask-05 >>
+- Master username           : admin
+- Engine option             : MySQL
+- Version                   : 8.0.35
+- Template                  : Free tier
+- DB instance class         : db.t2.micro
+- Publicly accessible       : ***Yes 
+- Master username           : admin
+- Master password           : Clarusway_1
+- Initial DB name           : clarusway
+
 - Please write same application that was given in Part2 with MYSQL
 
 - commit your code and push it to your GitHub repo
